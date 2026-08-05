@@ -69,7 +69,6 @@ export default function AdminDashboard() {
               <tr className="bg-gray-50 border-b border-gray-100 text-text-muted text-sm uppercase tracking-wider">
                 <th className="p-4 font-bold">Kata (Arab)</th>
                 <th className="p-4 font-bold">Arti</th>
-                {/* <th className="p-4 font-bold">Kategori</th> */}
                 <th className="p-4 font-bold text-right">Aksi</th>
               </tr>
             </thead>
@@ -89,13 +88,12 @@ export default function AdminDashboard() {
               ) : (
                 filteredWords.map((word) => (
                   <motion.tr initial={{ opacity: 0 }} animate={{ opacity: 1 }} key={word.id} className="border-b border-gray-50 hover:bg-gray-50/50 transition-colors">
-                    <td className="p-4">y
+                    <td className="p-4">
                       <span className="font-arabic text-2xl text-primary" dir="rtl">
                         {word.arabic_text}
                       </span>
                     </td>
                     <td className="p-4 font-semibold text-text">{word.meaning_id}</td>
-                    <td className="p-4">{word.category ? <span className="px-3 py-1 bg-gray-100 text-gray-600 rounded-full text-xs font-bold">{word.category}</span> : <span className="text-gray-300">-</span>}</td>
                     <td className="p-4 text-right">
                       <div className="flex justify-end gap-2">
                         <Link href={`/admin/words/${word.id}/edit`} className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">

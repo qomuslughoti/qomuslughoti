@@ -7,14 +7,9 @@ import { LogOut, LayoutDashboard, Plus, Settings } from 'lucide-react';
 import Link from 'next/link';
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
-  const [isClient, setIsClient] = useState(false);
   const router = useRouter();
   const pathname = usePathname();
   const supabase = createClient();
-
-  useEffect(() => {
-    setIsClient(true);
-  }, []);
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -26,8 +21,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   if (pathname === '/admin/login') {
     return <>{children}</>;
   }
-
-  if (!isClient) return null;
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col md:flex-row">

@@ -195,17 +195,6 @@ export default function WordForm({ initialData, isEdit }: WordFormProps) {
             />
           </div>
 
-          {/* Kolom Kategori dibiarkan jika ingin dipakai */}
-          <div>
-            <label className="block text-sm font-bold text-text mb-2">Kategori (Opsional)</label>
-            <input
-              type="text"
-              value={formData.category}
-              onChange={e => setFormData({ ...formData, category: e.target.value })}
-              className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:border-primary focus:ring-1 focus:ring-primary"
-              placeholder="cth: Benda, Sekolah, Hewan"
-            />
-          </div>
         </div>
 
         <div className="space-y-6">
@@ -224,7 +213,7 @@ export default function WordForm({ initialData, isEdit }: WordFormProps) {
             {(generatedImageUrl || initialData?.image_url) && !imageFile && (
               <div className="relative w-32 h-32 rounded-xl overflow-hidden border border-gray-200">
                 <img 
-                  src={generatedImageUrl || initialData?.image_url || ''} 
+                  src={generatedImageUrl ? `/api/proxy-download?url=${encodeURIComponent(generatedImageUrl)}` : (initialData?.image_url || '')} 
                   alt="Preview" 
                   className="object-cover w-full h-full"
                 />
@@ -247,7 +236,7 @@ export default function WordForm({ initialData, isEdit }: WordFormProps) {
             
             {(generatedAudioUrl || initialData?.audio_url) && !audioFile && (
               <div className="p-3 border border-gray-200 rounded-xl bg-gray-50 flex items-center justify-between">
-                <audio controls src={generatedAudioUrl || initialData?.audio_url || ''} className="h-8 w-full max-w-[200px]" />
+                <audio controls src={generatedAudioUrl ? `/api/proxy-download?url=${encodeURIComponent(generatedAudioUrl)}` : (initialData?.audio_url || '')} className="h-8 w-full max-w-[200px]" />
                 {generatedAudioUrl && <span className="bg-accent text-white text-[10px] px-2 py-0.5 rounded-full font-bold ml-2">AI Generated</span>}
               </div>
             )}
