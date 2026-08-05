@@ -94,7 +94,7 @@ export default function AdminDashboard() {
                       <div className="flex items-center gap-4">
                         {word.image_url ? (
                           <div 
-                            onClick={() => setSelectedImage(word.image_url)}
+                            onClick={() => setSelectedImage(word.image_url || null)}
                             className="w-12 h-12 rounded-xl overflow-hidden border border-gray-100 cursor-pointer hover:opacity-80 transition-opacity flex-shrink-0"
                           >
                             <img src={word.image_url} alt="thumbnail" className="w-full h-full object-cover" />
