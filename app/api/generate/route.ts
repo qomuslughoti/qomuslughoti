@@ -54,10 +54,9 @@ export async function GET(request: Request) {
     // 3. Generate Audio URL (Google TTS)
     const audioUrl = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(arabicText)}&tl=ar&client=tw-ob`;
 
-    // 4. Generate Image URL (Pollinations.ai)
-    // Gunakan prompt yang lebih simpel agar server AI tidak error
-    const imagePrompt = `3d cute colorful cartoon icon of ${englishText} for kids`;
-    const imageUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(imagePrompt)}?width=512&height=512&nologo=true`;
+    // 4. Generate Image URL (Mencari gambar gratis dari Flickr sebagai ganti AI yang sering error)
+    const tags = englishText.trim().split(' ').join(',');
+    const imageUrl = `https://loremflickr.com/512/512/${encodeURIComponent(tags)}`;
 
     return NextResponse.json({
       success: true,
