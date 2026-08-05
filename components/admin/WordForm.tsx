@@ -4,8 +4,8 @@ import { useState } from 'react';
 import { Word } from '@/lib/types';
 import { createClient } from '@/lib/supabase/client';
 import { useRouter } from 'next/navigation';
-import { Loader2, UploadCloud, X, Wand2 } from 'lucide-react';
-import Image from 'next/image';
+import { Loader2, Wand2 } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface WordFormProps {
   initialData?: Word;
@@ -19,6 +19,7 @@ export default function WordForm({ initialData, isEdit }: WordFormProps) {
   const [isGenerating, setIsGenerating] = useState(false);
   const [isImageLoading, setIsImageLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [toast, setToast] = useState<{show: boolean, message: string}>({ show: false, message: '' });
 
   const [formData, setFormData] = useState({
     arabic_text: initialData?.arabic_text || '',
@@ -145,9 +146,11 @@ export default function WordForm({ initialData, isEdit }: WordFormProps) {
         if (insertError) throw insertError;
       }
 
-      alert("Kata berhasil disimpan!");
-      router.push('/admin/dashboard');
-      router.refresh();
+      setToast({ show: true, message: "Kata berhasil disimpan!" });
+      setTimeout(() => {
+        router.push('/admin/dashboard');
+        router.refresh();
+      }, 1500);
     } catch (err: any) {
       setError(err.message || 'Terjadi kesalahan saat menyimpan data');
     } finally {
@@ -156,6 +159,7 @@ export default function WordForm({ initialData, isEdit }: WordFormProps) {
   };
 
   return (
+    <>
     <form onSubmit={handleSubmit} className="bg-white rounded-3xl shadow-sm border border-gray-100 p-6 sm:p-10">
       {error && <div className="mb-6 p-4 bg-red-50 text-red-600 rounded-xl text-sm border border-red-100">{error}</div>}
 
@@ -261,5 +265,24 @@ export default function WordForm({ initialData, isEdit }: WordFormProps) {
         </button>
       </div>
     </form>
+
+    <AnimatePresence>
+      {toast.show && (
+        <motion.div
+          initial={{ opacity: 0, y: 50 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: 50 }}
+          className="fixed bottom-10 right-10 z-50 bg-green-500 text-white px-6 py-3 rounded-2xl shadow-xl font-bold flex items-center gap-2"
+        >
+          <div className="w-6 h-6 bg-white/20 rounded-full flex items-center justify-center">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-white" viewBox="0 0 20 20" fill="currentColor">
+              <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+            </svg>
+          </div>
+          {toast.message}
+        </motion.div>
+      )}
+    </AnimatePresence>
+    </>
   );
 }

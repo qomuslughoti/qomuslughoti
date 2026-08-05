@@ -51,8 +51,13 @@ export default function WordDetailModal({ word, isOpen, onClose }: WordDetailMod
                 </div>
               )}
 
-              {/* Arabic Text & Audio */}
+              {/* Image, Arabic Text & Audio */}
               <div className="flex flex-col items-center justify-center mb-10 gap-6">
+                {word.image_url && (
+                  <div className="w-32 h-32 sm:w-40 sm:h-40 rounded-3xl overflow-hidden shadow-sm border border-gray-100 mb-2">
+                    <img src={word.image_url} alt={word.meaning_id} className="w-full h-full object-cover" />
+                  </div>
+                )}
                 <h2 className="text-6xl sm:text-7xl font-arabic text-primary text-center leading-tight" dir="rtl">
                   {word.arabic_text}
                 </h2>
