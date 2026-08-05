@@ -26,6 +26,8 @@ export async function GET(request: Request) {
       'puasa': { ar: 'صَوْم', en: 'fasting' },
       'dzikir': { ar: 'ذِكْر', en: 'praying muslim' },
       'zikir': { ar: 'ذِكْر', en: 'praying muslim' },
+      'tempat wudhu': { ar: 'مِيضَأَةٌ ج مَوَاضِئُ', en: 'ablution place' },
+      'tempat wudu': { ar: 'مِيضَأَةٌ ج مَوَاضِئُ', en: 'ablution place' },
       'alquran': { ar: 'قُرْآن', en: 'quran book' },
       'al-quran': { ar: 'قُرْآن', en: 'quran book' },
       'quran': { ar: 'قُرْآن', en: 'quran book' }
@@ -53,8 +55,8 @@ export async function GET(request: Request) {
     const audioUrl = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(arabicText)}&tl=ar&client=tw-ob`;
 
     // 4. Generate Image URL (Pollinations.ai)
-    // Tambahkan prompt gaya visual agar cocok untuk aplikasi anak-anak
-    const imagePrompt = `a cute colorful 3d icon of ${englishText}, isolated on pure white background, flat lighting, for kids app`;
+    // Gunakan prompt yang lebih simpel agar server AI tidak error
+    const imagePrompt = `3d cute colorful cartoon icon of ${englishText} for kids`;
     const imageUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(imagePrompt)}?width=512&height=512&nologo=true`;
 
     return NextResponse.json({
