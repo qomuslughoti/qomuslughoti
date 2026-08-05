@@ -17,6 +17,7 @@ export default function WordForm({ initialData, isEdit }: WordFormProps) {
   const supabase = createClient();
   const [isLoading, setIsLoading] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isImageLoading, setIsImageLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const [formData, setFormData] = useState({
@@ -55,6 +56,7 @@ export default function WordForm({ initialData, isEdit }: WordFormProps) {
         
         // Simpan URL preview
         setGeneratedImageUrl(data.data.image_url);
+        if (data.data.image_url) setIsImageLoading(true);
         setGeneratedAudioUrl(data.data.audio_url);
         
         // Hapus file manual jika ada (prioritaskan yang digenerate)
@@ -215,9 +217,15 @@ export default function WordForm({ initialData, isEdit }: WordFormProps) {
                 <img 
                   src={generatedImageUrl || initialData?.image_url || ''} 
                   alt="Preview" 
-                  className="object-cover w-full h-full"
+                  onLoad={() => setIsImageLoading(false)}
+                  className={`object-cover w-full h-full transition-opacity duration-300 ${isImageLoading ? 'opacity-0' : 'opacity-100'}`}
                 />
-                {generatedImageUrl && <span className="absolute bottom-1 right-1 bg-accent text-white text-[10px] px-2 py-0.5 rounded-full font-bold">AI Generated</span>}
+                {isImageLoading && (
+                  <div className="absolute inset-0 flex items-center justify-center bg-gray-50">
+                    <Loader2 className="w-6 h-6 animate-spin text-gray-400" />
+                  </div>
+                )}
+                {generatedImageUrl && !isImageLoading && <span className="absolute bottom-1 right-1 bg-accent text-white text-[10px] px-2 py-0.5 rounded-full font-bold">AI Generated</span>}
               </div>
             )}
           </div>
