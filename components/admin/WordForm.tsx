@@ -4,7 +4,8 @@ import { useState } from 'react';
 import { Word } from '@/lib/types';
 import { createClient } from '@/lib/supabase/client';
 import { useRouter } from 'next/navigation';
-import { Loader2, UploadCloud, X } from 'lucide-react';
+import { Loader2, UploadCloud, X, Wand2 } from 'lucide-react';
+import Image from 'next/image';
 
 interface WordFormProps {
   initialData?: Word;
@@ -15,6 +16,7 @@ export default function WordForm({ initialData, isEdit }: WordFormProps) {
   const router = useRouter();
   const supabase = createClient();
   const [isLoading, setIsLoading] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const [formData, setFormData] = useState({
@@ -26,8 +28,54 @@ export default function WordForm({ initialData, isEdit }: WordFormProps) {
   });
 
   const [audioFile, setAudioFile] = useState<File | null>(null);
+  const [imageFile, setImageFile] = useState<File | null>(null);
 
-  // Storage logic is simplified for prototype.
+  // States for previews of generated content
+  const [generatedImageUrl, setGeneratedImageUrl] = useState<string | null>(null);
+  const [generatedAudioUrl, setGeneratedAudioUrl] = useState<string | null>(null);
+
+  const handleAutoGenerate = async () => {
+    if (!formData.meaning_id) {
+      alert("Masukkan Arti (Indonesia) terlebih dahulu!");
+      return;
+    }
+
+    setIsGenerating(true);
+    setError(null);
+    try {
+      const res = await fetch(`/api/generate?word=${encodeURIComponent(formData.meaning_id)}`);
+      if (!res.ok) throw new Error("Gagal generate data AI");
+      const data = await res.json();
+      
+      if (data.success) {
+        setFormData(prev => ({
+          ...prev,
+          arabic_text: data.data.arabic_text
+        }));
+        
+        // Simpan URL preview
+        setGeneratedImageUrl(data.data.image_url);
+        setGeneratedAudioUrl(data.data.audio_url);
+        
+        // Hapus file manual jika ada (prioritaskan yang digenerate)
+        setImageFile(null);
+        setAudioFile(null);
+      }
+    } catch (err: any) {
+      setError(err.message || 'Terjadi kesalahan saat men-generate data');
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  const urlToFile = async (url: string, filename: string, mimeType: string): Promise<File> => {
+    // Kita gunakan proxy agar terhindar dari error CORS
+    const proxyUrl = `/api/proxy-download?url=${encodeURIComponent(url)}`;
+    const res = await fetch(proxyUrl);
+    const blob = await res.blob();
+    return new File([blob], filename, { type: mimeType });
+  };
+
   const handleFileUpload = async (file: File, bucket: string): Promise<string | null> => {
     const fileExt = file.name.split('.').pop();
     const fileName = `${Math.random()}.${fileExt}`;
@@ -52,11 +100,29 @@ export default function WordForm({ initialData, isEdit }: WordFormProps) {
     setError(null);
 
     try {
-      let audio_url = initialData?.audio_url;
+      let final_audio_url = initialData?.audio_url;
+      let final_image_url = initialData?.image_url;
 
+      // Handle Image Upload
+      if (imageFile) {
+        const url = await handleFileUpload(imageFile, 'word-images');
+        if (url) final_image_url = url;
+      } else if (generatedImageUrl && !isEdit) {
+        // Convert generated image URL to File and upload
+        const file = await urlToFile(generatedImageUrl, 'generated-image.jpg', 'image/jpeg');
+        const url = await handleFileUpload(file, 'word-images');
+        if (url) final_image_url = url;
+      }
+
+      // Handle Audio Upload
       if (audioFile) {
         const url = await handleFileUpload(audioFile, 'word-audio');
-        if (url) audio_url = url;
+        if (url) final_audio_url = url;
+      } else if (generatedAudioUrl && !isEdit) {
+         // Convert generated audio URL to File and upload
+         const file = await urlToFile(generatedAudioUrl, 'generated-audio.mp3', 'audio/mpeg');
+         const url = await handleFileUpload(file, 'word-audio');
+         if (url) final_audio_url = url;
       }
 
       const wordPayload = {
@@ -65,16 +131,15 @@ export default function WordForm({ initialData, isEdit }: WordFormProps) {
         category: formData.category || null,
         example_sentence: formData.example_sentence || null,
         example_translation: formData.example_translation || null,
-        audio_url,
+        audio_url: final_audio_url,
+        image_url: final_image_url,
       };
 
       if (isEdit && initialData) {
         const { error: updateError } = await supabase.from('words').update(wordPayload).eq('id', initialData.id);
-
         if (updateError) throw updateError;
       } else {
         const { error: insertError } = await supabase.from('words').insert([wordPayload]);
-
         if (insertError) throw insertError;
       }
 
@@ -94,6 +159,30 @@ export default function WordForm({ initialData, isEdit }: WordFormProps) {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         <div className="space-y-6">
           <div>
+            <div className="flex justify-between items-center mb-2">
+              <label className="block text-sm font-bold text-text">Arti (Indonesia) *</label>
+              <button 
+                type="button" 
+                onClick={handleAutoGenerate}
+                disabled={isGenerating || !formData.meaning_id}
+                className="text-xs font-bold bg-accent text-white px-3 py-1.5 rounded-lg hover:bg-yellow-500 transition-colors flex items-center gap-1 disabled:opacity-50"
+              >
+                {isGenerating ? <Loader2 className="w-3 h-3 animate-spin" /> : <Wand2 className="w-3 h-3" />}
+                Isi Otomatis
+              </button>
+            </div>
+            <input
+              type="text"
+              required
+              value={formData.meaning_id}
+              onChange={(e) => setFormData({ ...formData, meaning_id: e.target.value })}
+              className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:border-primary focus:ring-1 focus:ring-primary"
+              placeholder="Buku"
+            />
+            <p className="text-xs text-gray-400 mt-1">Ketik bahasa Indonesia lalu klik "Isi Otomatis" untuk generate teks Arab, suara, & gambar.</p>
+          </div>
+
+          <div>
             <label className="block text-sm font-bold text-text mb-2">Kata Arab *</label>
             <input
               type="text"
@@ -106,20 +195,9 @@ export default function WordForm({ initialData, isEdit }: WordFormProps) {
             />
           </div>
 
+          {/* Kolom Kategori dibiarkan jika ingin dipakai */}
           <div>
-            <label className="block text-sm font-bold text-text mb-2">Arti (Indonesia) *</label>
-            <input
-              type="text"
-              required
-              value={formData.meaning_id}
-              onChange={(e) => setFormData({ ...formData, meaning_id: e.target.value })}
-              className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:border-primary focus:ring-1 focus:ring-primary"
-              placeholder="Buku"
-            />
-          </div>
-
-          {/* <div>
-            <label className="block text-sm font-bold text-text mb-2">Kategori</label>
+            <label className="block text-sm font-bold text-text mb-2">Kategori (Opsional)</label>
             <input
               type="text"
               value={formData.category}
@@ -127,37 +205,52 @@ export default function WordForm({ initialData, isEdit }: WordFormProps) {
               className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:border-primary focus:ring-1 focus:ring-primary"
               placeholder="cth: Benda, Sekolah, Hewan"
             />
-          </div> */}
+          </div>
         </div>
 
         <div className="space-y-6">
           <div>
-            <label className="block text-sm font-bold text-text mb-2">Contoh Kalimat (Arab)</label>
-            <textarea
-              rows={3}
-              value={formData.example_sentence}
-              onChange={(e) => setFormData({ ...formData, example_sentence: e.target.value })}
-              className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:border-primary focus:ring-1 focus:ring-primary font-arabic text-xl"
-              dir="rtl"
-              placeholder="هَذَا كِتَابٌ جَدِيدٌ"
+            <label className="block text-sm font-bold text-text mb-2">Gambar</label>
+            <input 
+              type="file" 
+              accept="image/*" 
+              onChange={(e) => {
+                setImageFile(e.target.files?.[0] || null);
+                setGeneratedImageUrl(null); // hapus preview AI jika user upload manual
+              }} 
+              className="w-full px-4 py-2 border border-gray-200 rounded-xl text-sm mb-2" 
             />
-          </div>
-
-          <div>
-            <label className="block text-sm font-bold text-text mb-2">Terjemahan Contoh</label>
-            <textarea
-              rows={2}
-              value={formData.example_translation}
-              onChange={(e) => setFormData({ ...formData, example_translation: e.target.value })}
-              className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:border-primary focus:ring-1 focus:ring-primary"
-              placeholder="Ini adalah buku baru"
-            />
+            
+            {(generatedImageUrl || initialData?.image_url) && !imageFile && (
+              <div className="relative w-32 h-32 rounded-xl overflow-hidden border border-gray-200">
+                <img 
+                  src={generatedImageUrl || initialData?.image_url || ''} 
+                  alt="Preview" 
+                  className="object-cover w-full h-full"
+                />
+                {generatedImageUrl && <span className="absolute bottom-1 right-1 bg-accent text-white text-[10px] px-2 py-0.5 rounded-full font-bold">AI Generated</span>}
+              </div>
+            )}
           </div>
 
           <div>
             <label className="block text-sm font-bold text-text mb-2">File Audio</label>
-            <input type="file" accept="audio/*" onChange={(e) => setAudioFile(e.target.files?.[0] || null)} className="w-full px-4 py-2 border border-gray-200 rounded-xl text-sm" />
-            {initialData?.audio_url && !audioFile && <p className="text-xs text-green-600 mt-2 font-semibold">Audio sudah tersedia. Upload baru untuk mengganti.</p>}
+            <input 
+              type="file" 
+              accept="audio/*" 
+              onChange={(e) => {
+                setAudioFile(e.target.files?.[0] || null);
+                setGeneratedAudioUrl(null); // hapus preview AI
+              }} 
+              className="w-full px-4 py-2 border border-gray-200 rounded-xl text-sm mb-2" 
+            />
+            
+            {(generatedAudioUrl || initialData?.audio_url) && !audioFile && (
+              <div className="p-3 border border-gray-200 rounded-xl bg-gray-50 flex items-center justify-between">
+                <audio controls src={generatedAudioUrl || initialData?.audio_url || ''} className="h-8 w-full max-w-[200px]" />
+                {generatedAudioUrl && <span className="bg-accent text-white text-[10px] px-2 py-0.5 rounded-full font-bold ml-2">AI Generated</span>}
+              </div>
+            )}
           </div>
         </div>
       </div>
