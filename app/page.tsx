@@ -7,7 +7,8 @@ import SearchBar from '@/components/SearchBar';
 import CategoryFilter from '@/components/CategoryFilter';
 import WordCard from '@/components/WordCard';
 import WordDetailModal from '@/components/WordDetailModal';
-import { BookOpen } from 'lucide-react';
+import { BookOpen, LogIn } from 'lucide-react';
+import Link from 'next/link';
 
 export default function Home() {
   const supabase = createClient();
@@ -72,7 +73,19 @@ export default function Home() {
   };
 
   return (
-    <main className="flex-1 flex flex-col items-center p-4 pt-12 sm:pt-20 pb-20">
+    <main className="flex-1 flex flex-col items-center p-4 pt-12 sm:pt-20 pb-20 relative">
+      
+      {/* Tombol Login Admin */}
+      <div className="absolute top-4 right-4 sm:top-6 sm:right-6">
+        <Link 
+          href="/admin/dashboard" 
+          className="flex items-center gap-2 text-sm font-bold text-text-muted hover:text-primary bg-white px-4 py-2 rounded-full shadow-sm border border-gray-100 transition-colors"
+        >
+          <LogIn className="w-4 h-4" />
+          <span className="hidden sm:inline">Login Admin</span>
+        </Link>
+      </div>
+
       <div className="w-full max-w-4xl flex flex-col items-center">
         
         {/* Header Section */}
