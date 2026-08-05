@@ -111,10 +111,8 @@ export default function WordForm({ initialData, isEdit }: WordFormProps) {
         const url = await handleFileUpload(imageFile, 'word-images');
         if (url) final_image_url = url;
       } else if (generatedImageUrl && !isEdit) {
-        // Convert generated image URL to File and upload
-        const file = await urlToFile(generatedImageUrl, 'generated-image.jpg', 'image/jpeg');
-        const url = await handleFileUpload(file, 'word-images');
-        if (url) final_image_url = url;
+        // Langsung gunakan URL asli (tidak perlu didownload lalu diupload lagi)
+        final_image_url = generatedImageUrl;
       }
 
       // Handle Audio Upload
@@ -122,10 +120,8 @@ export default function WordForm({ initialData, isEdit }: WordFormProps) {
         const url = await handleFileUpload(audioFile, 'word-audio');
         if (url) final_audio_url = url;
       } else if (generatedAudioUrl && !isEdit) {
-         // Convert generated audio URL to File and upload
-         const file = await urlToFile(generatedAudioUrl, 'generated-audio.mp3', 'audio/mpeg');
-         const url = await handleFileUpload(file, 'word-audio');
-         if (url) final_audio_url = url;
+         // Langsung gunakan URL asli
+         final_audio_url = generatedAudioUrl;
       }
 
       const wordPayload = {
@@ -248,7 +244,7 @@ export default function WordForm({ initialData, isEdit }: WordFormProps) {
             
             {(generatedAudioUrl || initialData?.audio_url) && !audioFile && (
               <div className="p-3 border border-gray-200 rounded-xl bg-gray-50 flex items-center justify-between">
-                <audio controls src={generatedAudioUrl ? `/api/proxy-download?url=${encodeURIComponent(generatedAudioUrl)}` : (initialData?.audio_url || '')} className="h-8 w-full max-w-[200px]" />
+                <audio controls src={generatedAudioUrl || initialData?.audio_url || ''} className="h-8 w-full max-w-[200px]" />
               </div>
             )}
           </div>
