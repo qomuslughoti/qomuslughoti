@@ -145,6 +145,7 @@ export default function WordForm({ initialData, isEdit }: WordFormProps) {
         if (insertError) throw insertError;
       }
 
+      alert("Kata berhasil disimpan!");
       router.push('/admin/dashboard');
       router.refresh();
     } catch (err: any) {
@@ -225,7 +226,6 @@ export default function WordForm({ initialData, isEdit }: WordFormProps) {
                     <Loader2 className="w-6 h-6 animate-spin text-gray-400" />
                   </div>
                 )}
-                {generatedImageUrl && !isImageLoading && <span className="absolute bottom-1 right-1 bg-accent text-white text-[10px] px-2 py-0.5 rounded-full font-bold">AI Generated</span>}
               </div>
             )}
           </div>
@@ -245,7 +245,6 @@ export default function WordForm({ initialData, isEdit }: WordFormProps) {
             {(generatedAudioUrl || initialData?.audio_url) && !audioFile && (
               <div className="p-3 border border-gray-200 rounded-xl bg-gray-50 flex items-center justify-between">
                 <audio controls src={generatedAudioUrl ? `/api/proxy-download?url=${encodeURIComponent(generatedAudioUrl)}` : (initialData?.audio_url || '')} className="h-8 w-full max-w-[200px]" />
-                {generatedAudioUrl && <span className="bg-accent text-white text-[10px] px-2 py-0.5 rounded-full font-bold ml-2">AI Generated</span>}
               </div>
             )}
           </div>
