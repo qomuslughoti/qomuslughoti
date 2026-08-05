@@ -213,7 +213,7 @@ export default function WordForm({ initialData, isEdit }: WordFormProps) {
             {(generatedImageUrl || initialData?.image_url) && !imageFile && (
               <div className="relative w-32 h-32 rounded-xl overflow-hidden border border-gray-200">
                 <img 
-                  src={generatedImageUrl ? `/api/proxy-download?url=${encodeURIComponent(generatedImageUrl)}` : (initialData?.image_url || '')} 
+                  src={generatedImageUrl || initialData?.image_url || ''} 
                   alt="Preview" 
                   className="object-cover w-full h-full"
                 />
