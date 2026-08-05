@@ -54,9 +54,22 @@ export async function GET(request: Request) {
     // 3. Generate Audio URL (Google TTS)
     const audioUrl = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(arabicText)}&tl=ar&client=tw-ob`;
 
-    // 4. Generate Image URL (Mencari gambar gratis dari Flickr sebagai ganti AI yang sering error)
-    const tags = englishText.trim().split(' ').join(',');
-    const imageUrl = `https://loremflickr.com/512/512/${encodeURIComponent(tags)}`;
+    // 4. Generate Image URL (Menggunakan Gambar Utama Wikipedia berdasarkan kata bahasa Inggris)
+    // Ini jauh lebih akurat daripada Flickr dan lebih stabil daripada AI gratisan.
+    let imageUrl = null;
+    try {
+      const wikiRes = await fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(englishText)}`);
+      if (wikiRes.ok) {
+        const wikiData = await wikiRes.json();
+        if (wikiData.thumbnail && wikiData.thumbnail.source) {
+          imageUrl = wikiData.thumbnail.source;
+        } else if (wikiData.originalimage && wikiData.originalimage.source) {
+          imageUrl = wikiData.originalimage.source;
+        }
+      }
+    } catch (e) {
+      console.log("Wikipedia image not found, skipping.");
+    }
 
     return NextResponse.json({
       success: true,
