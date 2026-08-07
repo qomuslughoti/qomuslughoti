@@ -69,6 +69,7 @@ export default function AdminDashboard() {
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="bg-gray-50 border-b border-gray-100 text-text-muted text-sm uppercase tracking-wider">
+                <th className="p-4 font-bold w-16 text-center">No.</th>
                 <th className="p-4 font-bold">Kata (Arab)</th>
                 <th className="p-4 font-bold">Arti</th>
                 <th className="p-4 font-bold text-right">Aksi</th>
@@ -88,8 +89,9 @@ export default function AdminDashboard() {
                   </td>
                 </tr>
               ) : (
-                filteredWords.map((word) => (
+                filteredWords.map((word, index) => (
                   <motion.tr initial={{ opacity: 0 }} animate={{ opacity: 1 }} key={word.id} className="border-b border-gray-50 hover:bg-gray-50/50 transition-colors">
+                    <td className="p-4 text-center text-text-muted font-semibold">{index + 1}</td>
                     <td className="p-4">
                       <div className="flex items-center gap-4">
                         {word.image_url ? (
