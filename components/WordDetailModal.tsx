@@ -58,7 +58,7 @@ export default function WordDetailModal({ word, isOpen, onClose }: WordDetailMod
                     <img src={word.image_url} alt={word.meaning_id} className="w-full h-full object-cover" />
                   </div>
                 )}
-                <h2 className="text-6xl sm:text-7xl font-arabic text-primary text-center leading-tight" dir="rtl">
+                <h2 className="text-6xl sm:text-7xl font-arabic text-primary text-center leading-tight tracking-normal" dir="rtl">
                   {word.arabic_text}
                 </h2>
                 

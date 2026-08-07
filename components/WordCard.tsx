@@ -27,7 +27,7 @@ export default function WordCard({ word, onClick }: WordCardProps) {
       </div>
 
       <div 
-        className="w-full text-4xl sm:text-5xl font-arabic text-primary mb-6 text-center sm:text-right"
+        className="w-full text-4xl sm:text-5xl font-arabic text-primary mb-6 text-center sm:text-right tracking-normal"
         dir="rtl"
       >
         {word.arabic_text}
