@@ -55,7 +55,9 @@ export default function WordForm({ initialData, isEdit }: WordFormProps) {
       if (data.success) {
         setFormData(prev => ({
           ...prev,
-          arabic_text: data.data.arabic_text
+          arabic_text: data.data.arabic_text,
+          ...(data.data.example_sentence ? { example_sentence: data.data.example_sentence } : {}),
+          ...(data.data.example_translation ? { example_translation: data.data.example_translation } : {})
         }));
         
         // Simpan URL preview
