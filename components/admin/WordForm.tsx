@@ -111,8 +111,8 @@ export default function WordForm({ initialData, isEdit }: WordFormProps) {
       if (imageFile) {
         const url = await handleFileUpload(imageFile, 'word-images');
         if (url) final_image_url = url;
-      } else if (generatedImageUrl && !isEdit) {
-        // Langsung gunakan URL asli (tidak perlu didownload lalu diupload lagi)
+      } else if (generatedImageUrl) {
+        // Langsung gunakan URL asli
         final_image_url = generatedImageUrl;
       }
 
@@ -120,7 +120,7 @@ export default function WordForm({ initialData, isEdit }: WordFormProps) {
       if (audioFile) {
         const url = await handleFileUpload(audioFile, 'word-audio');
         if (url) final_audio_url = url;
-      } else if (generatedAudioUrl && !isEdit) {
+      } else if (generatedAudioUrl) {
          // Langsung gunakan URL asli
          final_audio_url = generatedAudioUrl;
       }
