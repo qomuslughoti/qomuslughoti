@@ -16,6 +16,7 @@ const amiri = Amiri({
 export const metadata: Metadata = {
   title: "Qomus Lughoti | Kamus Digital Bahasa Arab",
   description: "Kamus digital interaktif Bahasa Arab untuk murid dan pelajar.",
+  referrer: "no-referrer",
 };
 
 export default function RootLayout({

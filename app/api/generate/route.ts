@@ -51,15 +51,18 @@ export async function GET(request: Request) {
       englishText = enData[0][0][0];
     }
 
-    // 3. Audio URL dinonaktifkan dari API.
-    // Kita menggunakan Web Speech API (suara asli dari device pengguna) yang 100% gratis, offline, dan tanpa error.
-    const audioUrl = null;
+    // 3. Generate Audio URL (Google TTS)
+    const audioUrl = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(arabicText)}&tl=ar&client=tw-ob`;
 
     // 4. Generate Image URL (Menggunakan Gambar Utama Wikipedia berdasarkan kata bahasa Inggris)
     // Ini jauh lebih akurat daripada Flickr dan lebih stabil daripada AI gratisan.
     let imageUrl = null;
     try {
-      const wikiRes = await fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(englishText)}`);
+      const wikiRes = await fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(englishText)}`, {
+        headers: {
+          'User-Agent': 'QomusLughoti/1.0 (https://qomuslughoti.vercel.app/)'
+        }
+      });
       if (wikiRes.ok) {
         const wikiData = await wikiRes.json();
         if (wikiData.thumbnail && wikiData.thumbnail.source) {
