@@ -6,6 +6,7 @@ import { createClient } from '@/lib/supabase/client';
 import { useRouter } from 'next/navigation';
 import { Loader2, Wand2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import AudioPlayer from '@/components/AudioPlayer';
 
 interface WordFormProps {
   initialData?: Word;
@@ -242,9 +243,10 @@ export default function WordForm({ initialData, isEdit }: WordFormProps) {
               className="w-full px-4 py-2 border border-gray-200 rounded-xl text-sm mb-2" 
             />
             
-            {(generatedAudioUrl || initialData?.audio_url) && !audioFile && (
-              <div className="p-3 border border-gray-200 rounded-xl bg-gray-50 flex items-center justify-between">
-                <audio controls src={generatedAudioUrl || initialData?.audio_url || ''} className="h-8 w-full max-w-[200px]" />
+            {/* Remove preview for audio URL since we use Web Speech API, but we keep it for uploaded files */}
+            {(!audioFile && (generatedAudioUrl || initialData?.audio_url || formData.arabic_text)) && (
+              <div className="mt-4 flex items-center justify-center">
+                <AudioPlayer url={generatedAudioUrl || initialData?.audio_url || null} text={formData.arabic_text} />
               </div>
             )}
           </div>

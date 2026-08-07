@@ -5,35 +5,54 @@ import { useState, useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
 
 interface AudioPlayerProps {
-  url: string;
+  url?: string | null;
+  text?: string;
 }
 
-export default function AudioPlayer({ url }: AudioPlayerProps) {
+export default function AudioPlayer({ url, text }: AudioPlayerProps) {
   const [isPlaying, setIsPlaying] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   const togglePlay = () => {
-    if (!audioRef.current) return;
-
     if (isPlaying) {
-      audioRef.current.pause();
-      audioRef.current.currentTime = 0;
+      if (url && audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current.currentTime = 0;
+      } else {
+        window.speechSynthesis.cancel();
+      }
       setIsPlaying(false);
     } else {
-      audioRef.current.play().catch(e => console.log('Audio play failed:', e));
+      setIsPlaying(true);
+      if (url && audioRef.current) {
+        audioRef.current.play().catch(e => {
+          console.log('Audio play failed:', e);
+          setIsPlaying(false);
+        });
+      } else if (text) {
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = 'ar-SA';
+        utterance.onend = () => setIsPlaying(false);
+        utterance.onerror = () => setIsPlaying(false);
+        window.speechSynthesis.speak(utterance);
+      } else {
+        setIsPlaying(false);
+      }
     }
   };
 
   return (
     <>
-      <audio 
-        ref={audioRef} 
-        src={url} 
-        onPlay={() => setIsPlaying(true)} 
-        onPause={() => setIsPlaying(false)} 
-        onEnded={() => setIsPlaying(false)}
-        className="hidden"
-      />
+      {url && (
+        <audio 
+          ref={audioRef} 
+          src={url} 
+          onPlay={() => setIsPlaying(true)} 
+          onPause={() => setIsPlaying(false)} 
+          onEnded={() => setIsPlaying(false)}
+          className="hidden"
+        />
+      )}
       <motion.button
         whileHover={{ scale: 1.1 }}
         whileTap={{ scale: 0.9 }}

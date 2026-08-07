@@ -62,9 +62,7 @@ export default function WordDetailModal({ word, isOpen, onClose }: WordDetailMod
                   {word.arabic_text}
                 </h2>
                 
-                {word.audio_url && (
-                  <AudioPlayer url={word.audio_url} />
-                )}
+                <AudioPlayer url={word.audio_url} text={word.arabic_text} />
               </div>
 
               {/* Details */}
