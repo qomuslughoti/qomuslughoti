@@ -21,6 +21,8 @@ export default function WordForm({ initialData, isEdit }: WordFormProps) {
   const [isImageLoading, setIsImageLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [toast, setToast] = useState<{show: boolean, message: string}>({ show: false, message: '' });
+  const [isImageRemoved, setIsImageRemoved] = useState(false);
+  const [isAudioRemoved, setIsAudioRemoved] = useState(false);
 
   const [formData, setFormData] = useState({
     arabic_text: initialData?.arabic_text || '',
@@ -64,6 +66,8 @@ export default function WordForm({ initialData, isEdit }: WordFormProps) {
         // Hapus file manual jika ada (prioritaskan yang digenerate)
         setImageFile(null);
         setAudioFile(null);
+        setIsImageRemoved(false);
+        setIsAudioRemoved(false);
       }
     } catch (err: any) {
       setError(err.message || 'Terjadi kesalahan saat men-generate data');
@@ -104,8 +108,8 @@ export default function WordForm({ initialData, isEdit }: WordFormProps) {
     setError(null);
 
     try {
-      let final_audio_url = initialData?.audio_url;
-      let final_image_url = initialData?.image_url;
+      let final_audio_url = isAudioRemoved ? null : initialData?.audio_url;
+      let final_image_url = isImageRemoved ? null : initialData?.image_url;
 
       // Handle Image Upload
       if (imageFile) {
@@ -210,41 +214,70 @@ export default function WordForm({ initialData, isEdit }: WordFormProps) {
               onChange={(e) => {
                 setImageFile(e.target.files?.[0] || null);
                 setGeneratedImageUrl(null); // hapus preview AI jika user upload manual
+                setIsImageRemoved(false);
               }} 
               className="w-full px-4 py-2 border border-gray-200 rounded-xl text-sm mb-2" 
             />
             
-            {(generatedImageUrl || initialData?.image_url) && !imageFile && (
-              <div className="relative w-32 h-32 rounded-xl overflow-hidden border border-gray-200">
+            {(imageFile || generatedImageUrl || (!isImageRemoved && initialData?.image_url)) && (
+              <div className="relative w-32 h-32 rounded-xl overflow-hidden border border-gray-200 group">
                 <img 
-                  src={generatedImageUrl || initialData?.image_url || ''} 
+                  src={imageFile ? URL.createObjectURL(imageFile) : (generatedImageUrl || initialData?.image_url || '')} 
                   alt="Preview" 
                   onLoad={() => setIsImageLoading(false)}
-                  className={`object-cover w-full h-full transition-opacity duration-300 ${isImageLoading ? 'opacity-0' : 'opacity-100'}`}
+                  className={`object-cover w-full h-full transition-opacity duration-300 ${isImageLoading && !imageFile ? 'opacity-0' : 'opacity-100'}`}
                 />
-                {isImageLoading && (
+                {isImageLoading && !imageFile && (
                   <div className="absolute inset-0 flex items-center justify-center bg-gray-50">
                     <Loader2 className="w-6 h-6 animate-spin text-gray-400" />
                   </div>
                 )}
+                {/* Delete Button */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setImageFile(null);
+                    setGeneratedImageUrl(null);
+                    setIsImageRemoved(true);
+                  }}
+                  className="absolute top-1 right-1 bg-red-500 text-white p-1 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-600"
+                >
+                  <X className="w-4 h-4" />
+                </button>
               </div>
             )}
           </div>
 
           <div>
-            <label className="block text-sm font-bold text-text mb-2">File Audio</label>
+            <div className="flex justify-between items-center mb-2">
+              <label className="block text-sm font-bold text-text">File Audio</label>
+              {(audioFile || generatedAudioUrl || (!isAudioRemoved && initialData?.audio_url)) && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setAudioFile(null);
+                    setGeneratedAudioUrl(null);
+                    setIsAudioRemoved(true);
+                  }}
+                  className="text-xs text-red-500 hover:text-red-600 font-bold flex items-center gap-1"
+                >
+                  <X className="w-3 h-3" /> Hapus Audio
+                </button>
+              )}
+            </div>
             <input 
               type="file" 
               accept="audio/*" 
               onChange={(e) => {
                 setAudioFile(e.target.files?.[0] || null);
                 setGeneratedAudioUrl(null); // hapus preview AI
+                setIsAudioRemoved(false);
               }} 
               className="w-full px-4 py-2 border border-gray-200 rounded-xl text-sm mb-2" 
             />
             
-            {/* Remove preview for audio URL since we use Web Speech API, but we keep it for uploaded files */}
-            {(!audioFile && (generatedAudioUrl || initialData?.audio_url || formData.arabic_text)) && (
+            {/* Play Button Preview */}
+            {(!audioFile && (generatedAudioUrl || (!isAudioRemoved && initialData?.audio_url) || formData.arabic_text)) && (
               <div className="mt-4 flex items-center justify-center">
                 <AudioPlayer url={generatedAudioUrl || initialData?.audio_url || null} text={formData.arabic_text} />
               </div>
