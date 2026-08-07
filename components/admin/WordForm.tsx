@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { Word } from '@/lib/types';
 import { createClient } from '@/lib/supabase/client';
 import { useRouter } from 'next/navigation';
-import { Loader2, Wand2 } from 'lucide-react';
+import { Loader2, Wand2, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import AudioPlayer from '@/components/AudioPlayer';
 
@@ -240,7 +240,7 @@ export default function WordForm({ initialData, isEdit }: WordFormProps) {
                     setGeneratedImageUrl(null);
                     setIsImageRemoved(true);
                   }}
-                  className="absolute top-1 right-1 bg-red-500 text-white p-1 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-600"
+                  className="absolute z-10 top-2 right-2 bg-red-500 text-white p-1.5 rounded-lg shadow-md hover:bg-red-600 transition-colors"
                 >
                   <X className="w-4 h-4" />
                 </button>
