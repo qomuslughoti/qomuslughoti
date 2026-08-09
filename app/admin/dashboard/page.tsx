@@ -59,7 +59,8 @@ export default function AdminDashboard() {
       const res = await fetch('/api/fix-assets', { method: 'POST' });
       const data = await res.json();
       if (res.ok) {
-        alert(`Berhasil memperbaiki ${data.processed} data!`);
+        console.log("Hasil Sinkronisasi:", data.results);
+        alert(`Berhasil memproses ${data.processed} data!\nCek Console (F12) untuk detail mana yang gagal atau berhasil.`);
         fetchWords(); // Refresh data
       } else {
         alert('Gagal memperbaiki data: ' + data.error);

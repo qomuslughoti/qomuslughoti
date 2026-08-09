@@ -96,10 +96,12 @@ export async function POST(request: Request) {
           image_url: newImageUrl,
           audio_url: newAudioUrl
         }).eq('id', word.id);
-        results.push(`Sukses: ${word.meaning_id}`);
+        results.push(`Sukses: ${word.meaning_id} | Img: ${newImageUrl ? 'Yes' : 'No'}`);
+      } else {
+        results.push(`Lewati: ${word.meaning_id} (Tidak ada update/Gagal cari gambar)`);
       }
     } catch (e: any) {
-      results.push(`Gagal: ${word.meaning_id} - ${e.message}`);
+      results.push(`Gagal total: ${word.meaning_id} - ${e.message}`);
     }
   }
 
