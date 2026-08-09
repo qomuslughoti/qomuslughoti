@@ -58,35 +58,31 @@ export async function POST(request: Request) {
         if (freshImageUrl) {
           const imageRes = await fetch(freshImageUrl);
           if (imageRes.ok) {
-            const blob = await imageRes.blob();
+            const arrayBuffer = await imageRes.arrayBuffer();
             const ext = freshImageUrl.split('.').pop()?.split('?')[0] || 'jpg';
             const filename = `fixed_${word.id}_${Date.now()}.${ext}`;
+            const contentType = imageRes.headers.get('content-type') || 'image/jpeg';
             
-            const { error: uploadErr } = await supabase.storage.from('word-images').upload(filename, blob);
+            const { error: uploadErr } = await supabase.storage.from('word-images').upload(filename, arrayBuffer, {
+              contentType,
+            });
             if (!uploadErr) {
               const { data: { publicUrl } } = supabase.storage.from('word-images').getPublicUrl(filename);
               newImageUrl = publicUrl;
               updated = true;
+            } else {
+              console.error("Upload image error:", uploadErr);
             }
           }
         }
       }
 
-      // FIX AUDIO
-      if (word.audio_url && !word.audio_url.includes('supabase.co')) {
+      // FIX AUDIO: Google TTS URLs do not expire for browsers, but downloading them via server can be blocked or corrupted.
+      // So we just re-generate the direct URL and save it.
+      if (!word.audio_url || word.audio_url.includes('supabase.co')) {
         const freshAudioUrl = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(word.arabic_text)}&tl=ar&client=tw-ob`;
-        const audioRes = await fetch(freshAudioUrl);
-        if (audioRes.ok) {
-          const blob = await audioRes.blob();
-          const filename = `fixed_${word.id}_${Date.now()}.mp3`;
-          
-          const { error: uploadErr } = await supabase.storage.from('word-audio').upload(filename, blob);
-          if (!uploadErr) {
-            const { data: { publicUrl } } = supabase.storage.from('word-audio').getPublicUrl(filename);
-            newAudioUrl = publicUrl;
-            updated = true;
-          }
-        }
+        newAudioUrl = freshAudioUrl;
+        updated = true;
       }
 
       // Update Database jika ada perubahan
