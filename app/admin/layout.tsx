@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { useRouter, usePathname } from 'next/navigation';
-import { LogOut, LayoutDashboard, Plus, Settings } from 'lucide-react';
+import { LogOut, LayoutDashboard, Plus, Settings, User } from 'lucide-react';
 import Link from 'next/link';
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -52,6 +52,17 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           >
             <Plus className="w-5 h-5" />
             Tambah Kata
+          </Link>
+          <Link 
+            href="/profile" 
+            className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-colors ${
+              pathname === '/profile' 
+                ? 'bg-primary-light text-primary font-bold' 
+                : 'text-text-muted hover:bg-gray-100 hover:text-text'
+            }`}
+          >
+            <User className="w-5 h-5" />
+            Profil Klien
           </Link>
         </nav>
 
