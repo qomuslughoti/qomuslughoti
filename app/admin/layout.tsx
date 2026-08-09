@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase/client';
 import { useRouter, usePathname } from 'next/navigation';
 import { LogOut, LayoutDashboard, Plus, Settings, User } from 'lucide-react';
 import Link from 'next/link';
+import { Toaster } from 'react-hot-toast';
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
@@ -24,6 +25,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col md:flex-row">
+      <Toaster position="top-right" />
       {/* Sidebar */}
       <aside className="w-full md:w-64 bg-white border-r border-gray-200 flex flex-col p-4">
         <div className="mb-8 px-2">

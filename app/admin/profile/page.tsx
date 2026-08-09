@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { User, Book, GraduationCap, MapPin, Phone, Building, Calendar, Edit2, Check, X, Plus, Trash2 } from 'lucide-react';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
+import toast from 'react-hot-toast';
 
 export default function ProfilePage() {
   const [isEditing, setIsEditing] = useState(false);
@@ -99,7 +100,7 @@ export default function ProfilePage() {
 
   const handleSave = async () => {
     if (!editProfile.nama.trim() || !editProfile.nim.trim()) {
-      alert("Nama dan NIM wajib diisi!");
+      toast.error("Nama dan NIM wajib diisi!");
       return;
     }
     
@@ -119,16 +120,19 @@ export default function ProfilePage() {
 
       if (profileId) {
         // Update existing
-        await supabase.from('profiles').update(profilePayload).eq('id', profileId);
+        const { error: updateErr } = await supabase.from('profiles').update(profilePayload).eq('id', profileId);
+        if (updateErr) throw new Error("Gagal update profil: " + updateErr.message);
       } else {
         // Insert new
-        const { data, error } = await supabase.from('profiles').insert([profilePayload]).select().single();
+        const { data, error: insertErr } = await supabase.from('profiles').insert([profilePayload]).select().single();
+        if (insertErr) throw new Error("Gagal membuat profil: " + insertErr.message);
         if (data) profileId = data.id;
       }
 
       // Handle Education History (Delete all and re-insert)
       if (profileId) {
-        await supabase.from('education_history').delete().eq('profile_id', profileId);
+        const { error: deleteErr } = await supabase.from('education_history').delete().eq('profile_id', profileId);
+        if (deleteErr) throw new Error("Gagal menghapus riwayat lama: " + deleteErr.message);
         
         if (editEducation.length > 0) {
           const eduPayload = editEducation.map(edu => ({
@@ -138,15 +142,16 @@ export default function ProfilePage() {
             tahun_masuk: edu.tahunMasuk,
             tahun_lulus: edu.tahunLulus,
           }));
-          await supabase.from('education_history').insert(eduPayload);
+          const { error: eduErr } = await supabase.from('education_history').insert(eduPayload);
+          if (eduErr) throw new Error("Gagal menyimpan riwayat pendidikan: " + eduErr.message);
         }
       }
       
       await fetchProfileData();
       setIsEditing(false);
-      alert("Profil berhasil disimpan!");
+      toast.success("Profil berhasil disimpan!");
     } catch (e: any) {
-      alert("Terjadi kesalahan saat menyimpan: " + e.message);
+      toast.error(e.message);
     } finally {
       setIsSaving(false);
     }
