@@ -11,8 +11,14 @@ import { X, Image as ImageIcon } from 'lucide-react';
 export default function AdminDashboard() {
   const [words, setWords] = useState<Word[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isSyncing, setIsSyncing] = useState(false);
   const [search, setSearch] = useState('');
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+
   const supabase = createClient();
 
   useEffect(() => {
@@ -36,6 +42,35 @@ export default function AdminDashboard() {
 
   const filteredWords = words.filter((w) => w.arabic_text.includes(search) || w.meaning_id.toLowerCase().includes(search.toLowerCase()) || (w.category && w.category.toLowerCase().includes(search.toLowerCase())));
 
+  // Pagination calculation
+  const totalPages = Math.ceil(filteredWords.length / itemsPerPage);
+  const currentWords = filteredWords.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+
+  // Reset page when search changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [search]);
+
+  const handleSync = async () => {
+    if (!confirm('Apakah Anda yakin ingin memperbaiki semua gambar dan audio yang hilang? Proses ini mungkin memakan waktu beberapa menit.')) return;
+    
+    setIsSyncing(true);
+    try {
+      const res = await fetch('/api/fix-assets', { method: 'POST' });
+      const data = await res.json();
+      if (res.ok) {
+        alert(`Berhasil memperbaiki ${data.processed} data!`);
+        fetchWords(); // Refresh data
+      } else {
+        alert('Gagal memperbaiki data: ' + data.error);
+      }
+    } catch (e) {
+      alert('Terjadi kesalahan koneksi saat memperbaiki data.');
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
   return (
     <div className="max-w-6xl mx-auto">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
@@ -43,10 +78,27 @@ export default function AdminDashboard() {
           <h1 className="text-3xl font-bold text-text mb-2">Daftar Kata</h1>
           <p className="text-text-muted">Kelola kosakata bahasa Arab di kamus Anda.</p>
         </div>
-        <Link href="/admin/words/new" className="bg-primary hover:bg-primary-dark text-white px-6 py-3 rounded-full font-bold flex items-center gap-2 transition-colors shadow-sm">
-          <Plus className="w-5 h-5" />
-          Tambah Kata
-        </Link>
+        <div className="flex items-center gap-3">
+          <button 
+            onClick={handleSync}
+            disabled={isSyncing}
+            className="bg-accent hover:bg-yellow-500 text-white px-4 py-3 rounded-full font-bold flex items-center gap-2 transition-colors shadow-sm disabled:opacity-50"
+          >
+            {isSyncing ? (
+              <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+            ) : (
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 21v-5h5"/></svg>
+            )}
+            <span className="hidden sm:inline">{isSyncing ? 'Memperbaiki...' : 'Perbaiki Gambar'}</span>
+          </button>
+          <Link href="/admin/words/new" className="bg-primary hover:bg-primary-dark text-white px-6 py-3 rounded-full font-bold flex items-center gap-2 transition-colors shadow-sm">
+            <Plus className="w-5 h-5" />
+            Tambah Kata
+          </Link>
+        </div>
       </div>
 
       <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
@@ -82,16 +134,18 @@ export default function AdminDashboard() {
                     Loading data...
                   </td>
                 </tr>
-              ) : filteredWords.length === 0 ? (
+              ) : currentWords.length === 0 ? (
                 <tr>
                   <td colSpan={4} className="p-8 text-center text-text-muted">
                     Belum ada data kata.
                   </td>
                 </tr>
               ) : (
-                filteredWords.map((word, index) => (
+                currentWords.map((word, index) => (
                   <motion.tr initial={{ opacity: 0 }} animate={{ opacity: 1 }} key={word.id} className="border-b border-gray-50 hover:bg-gray-50/50 transition-colors">
-                    <td className="p-4 text-center text-text-muted font-semibold">{index + 1}</td>
+                    <td className="p-4 text-center text-text-muted font-semibold">
+                      {(currentPage - 1) * itemsPerPage + index + 1}
+                    </td>
                     <td className="p-4">
                       <div className="flex items-center gap-4">
                         {word.image_url ? (
@@ -128,6 +182,51 @@ export default function AdminDashboard() {
             </tbody>
           </table>
         </div>
+        </div>
+        
+        {/* Pagination Controls */}
+        {totalPages > 1 && (
+          <div className="p-4 border-t border-gray-100 flex items-center justify-between bg-gray-50/30">
+            <div className="text-sm text-text-muted">
+              Menampilkan <span className="font-bold text-text">{(currentPage - 1) * itemsPerPage + 1}</span> hingga{' '}
+              <span className="font-bold text-text">
+                {Math.min(currentPage * itemsPerPage, filteredWords.length)}
+              </span>{' '}
+              dari <span className="font-bold text-text">{filteredWords.length}</span> kata
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                disabled={currentPage === 1}
+                className="px-3 py-1.5 rounded-lg border border-gray-200 text-sm font-medium text-text hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                Sebelumnya
+              </button>
+              <div className="flex items-center gap-1">
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                  <button
+                    key={page}
+                    onClick={() => setCurrentPage(page)}
+                    className={`w-8 h-8 rounded-lg text-sm font-bold flex items-center justify-center transition-colors ${
+                      currentPage === page
+                        ? 'bg-primary text-white border border-primary'
+                        : 'text-text-muted hover:bg-gray-100 border border-transparent'
+                    }`}
+                  >
+                    {page}
+                  </button>
+                ))}
+              </div>
+              <button
+                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                disabled={currentPage === totalPages}
+                className="px-3 py-1.5 rounded-lg border border-gray-200 text-sm font-medium text-text hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                Selanjutnya
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Image Popup Modal */}

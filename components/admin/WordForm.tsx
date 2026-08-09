@@ -118,8 +118,14 @@ export default function WordForm({ initialData, isEdit }: WordFormProps) {
         const url = await handleFileUpload(imageFile, 'word-images');
         if (url) final_image_url = url;
       } else if (generatedImageUrl) {
-        // Langsung gunakan URL asli
-        final_image_url = generatedImageUrl;
+        // Fix: Unduh gambar Pixabay ke storage sendiri untuk menghindari blokir hotlink
+        if (!generatedImageUrl.includes('supabase.co')) {
+          const file = await urlToFile(generatedImageUrl, 'auto_generated.jpg', 'image/jpeg');
+          const url = await handleFileUpload(file, 'word-images');
+          if (url) final_image_url = url;
+        } else {
+          final_image_url = generatedImageUrl;
+        }
       }
 
       // Handle Audio Upload
@@ -127,8 +133,14 @@ export default function WordForm({ initialData, isEdit }: WordFormProps) {
         const url = await handleFileUpload(audioFile, 'word-audio');
         if (url) final_audio_url = url;
       } else if (generatedAudioUrl) {
-         // Langsung gunakan URL asli
-         final_audio_url = generatedAudioUrl;
+         // Unduh audio TTS ke storage sendiri
+         if (!generatedAudioUrl.includes('supabase.co')) {
+           const file = await urlToFile(generatedAudioUrl, 'auto_generated.mp3', 'audio/mpeg');
+           const url = await handleFileUpload(file, 'word-audio');
+           if (url) final_audio_url = url;
+         } else {
+           final_audio_url = generatedAudioUrl;
+         }
       }
 
       const wordPayload = {
