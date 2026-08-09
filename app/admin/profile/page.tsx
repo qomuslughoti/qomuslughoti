@@ -108,7 +108,16 @@ export default function ProfilePage() {
     try {
       let profileId = profile.id;
       
+      // Get current user session
+      const { data: { session } } = await supabase.auth.getSession();
+      const userId = session?.user?.id;
+      
+      if (!userId) {
+        throw new Error("Anda harus login terlebih dahulu");
+      }
+
       const profilePayload = {
+        id: userId,
         nama: editProfile.nama,
         nim: editProfile.nim,
         jurusan: editProfile.jurusan,
@@ -120,7 +129,15 @@ export default function ProfilePage() {
 
       if (profileId) {
         // Update existing
-        const { error: updateErr } = await supabase.from('profiles').update(profilePayload).eq('id', profileId);
+        const { error: updateErr } = await supabase.from('profiles').update({
+          nama: editProfile.nama,
+          nim: editProfile.nim,
+          jurusan: editProfile.jurusan,
+          fakultas: editProfile.fakultas,
+          angkatan: editProfile.angkatan,
+          alamat: editProfile.alamat,
+          nomor_telepon: editProfile.nomorTelepon,
+        }).eq('id', profileId);
         if (updateErr) throw new Error("Gagal update profil: " + updateErr.message);
       } else {
         // Insert new
