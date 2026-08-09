@@ -4,11 +4,10 @@ import { createClient } from '@/lib/supabase/server';
 export async function POST(request: Request) {
   const supabase = await createClient();
 
-  // Ambil semua kata yang punya URL eksternal (bukan Supabase)
+  // Ambil semua kata untuk dicek
   const { data: words, error } = await supabase
     .from('words')
-    .select('*')
-    .or('image_url.not.ilike.%supabase.co%,audio_url.not.ilike.%supabase.co%');
+    .select('*');
 
   if (error || !words) {
     return NextResponse.json({ error: 'Gagal mengambil data' }, { status: 500 });
@@ -23,8 +22,11 @@ export async function POST(request: Request) {
     let updated = false;
 
     try {
-      // FIX IMAGE: Generate URL baru karena URL lama mungkin sudah kadaluarsa (anti-hotlink)
-      if (word.image_url && !word.image_url.includes('supabase.co')) {
+      const isBrokenSupabaseImage = word.image_url && word.image_url.includes('supabase.co') && word.image_url.includes('fixed_');
+      const isExternalImage = word.image_url && !word.image_url.includes('supabase.co');
+
+      // FIX IMAGE: Generate URL baru jika eksternal, atau jika itu file 'fixed_' yang corrupt
+      if (!word.image_url || isBrokenSupabaseImage || isExternalImage) {
         let freshImageUrl = null;
         
         // Terjemahkan ke Inggris untuk Pixabay
@@ -77,9 +79,12 @@ export async function POST(request: Request) {
         }
       }
 
+      const isBrokenSupabaseAudio = word.audio_url && word.audio_url.includes('supabase.co') && word.audio_url.includes('fixed_');
+      const isExternalAudio = word.audio_url && !word.audio_url.includes('supabase.co');
+
       // FIX AUDIO: Google TTS URLs do not expire for browsers, but downloading them via server can be blocked or corrupted.
       // So we just re-generate the direct URL and save it.
-      if (!word.audio_url || word.audio_url.includes('supabase.co')) {
+      if (!word.audio_url || isBrokenSupabaseAudio || isExternalAudio) {
         const freshAudioUrl = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(word.arabic_text)}&tl=ar&client=tw-ob`;
         newAudioUrl = freshAudioUrl;
         updated = true;
