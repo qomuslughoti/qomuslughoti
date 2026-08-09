@@ -54,9 +54,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             Tambah Kata
           </Link>
           <Link 
-            href="/profile" 
+            href="/admin/profile" 
             className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-colors ${
-              pathname === '/profile' 
+              pathname === '/admin/profile' 
                 ? 'bg-primary-light text-primary font-bold' 
                 : 'text-text-muted hover:bg-gray-100 hover:text-text'
             }`}

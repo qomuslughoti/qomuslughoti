@@ -78,7 +78,7 @@ export default function Home() {
       {/* Top Right Navigation */}
       <div className="absolute top-4 right-4 sm:top-6 sm:right-6 flex items-center gap-3">
         <Link 
-          href="/profile" 
+          href="/admin/profile" 
           className="flex items-center gap-2 text-sm font-bold text-text-muted hover:text-primary bg-white px-4 py-2 rounded-full shadow-sm border border-gray-100 transition-colors"
         >
           <User className="w-4 h-4" />

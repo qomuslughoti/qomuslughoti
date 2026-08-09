@@ -1,43 +1,155 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { User, Book, GraduationCap, MapPin, Phone, Building, Calendar, Edit2, Check, X, Plus, Trash2 } from 'lucide-react';
 import Link from 'next/link';
+import { createClient } from '@/lib/supabase/client';
 
 export default function ProfilePage() {
   const [isEditing, setIsEditing] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
+  const supabase = createClient();
   
-  // Dummy data
+  // Default values
   const [profile, setProfile] = useState({
-    nama: "Ahmad Zainudin",
-    nim: "2023101001",
-    jurusan: "Sastra Arab",
-    fakultas: "Fakultas Ilmu Budaya",
-    angkatan: "2023",
-    alamat: "Jl. Sudirman No. 123, Jakarta Selatan",
-    nomorTelepon: "081234567890",
+    id: "",
+    nama: "",
+    nim: "",
+    jurusan: "",
+    fakultas: "",
+    angkatan: "",
+    alamat: "",
+    nomorTelepon: "",
   });
 
-  const [education, setEducation] = useState([
-    { id: 1, jenjang: "SD", namaSekolah: "SDN 1 Jakarta", tahunMasuk: "2011", tahunLulus: "2017" },
-    { id: 2, jenjang: "SMP", namaSekolah: "SMPN 1 Jakarta", tahunMasuk: "2017", tahunLulus: "2020" },
-    { id: 3, jenjang: "SMA", namaSekolah: "SMAN 1 Jakarta", tahunMasuk: "2020", tahunLulus: "2023" },
-  ]);
+  const [education, setEducation] = useState<any[]>([]);
 
   // Form states for editing
   const [editProfile, setEditProfile] = useState(profile);
   const [editEducation, setEditEducation] = useState(education);
 
-  const handleSave = () => {
-    // Basic validation
+  useEffect(() => {
+    fetchProfileData();
+  }, []);
+
+  const fetchProfileData = async () => {
+    setIsLoading(true);
+    try {
+      // Get the first profile (assuming single admin)
+      const { data: profileData, error: profileError } = await supabase
+        .from('profiles')
+        .select('*')
+        .limit(1)
+        .single();
+
+      if (profileData) {
+        const loadedProfile = {
+          id: profileData.id,
+          nama: profileData.nama || "",
+          nim: profileData.nim || "",
+          jurusan: profileData.jurusan || "",
+          fakultas: profileData.fakultas || "",
+          angkatan: profileData.angkatan || "",
+          alamat: profileData.alamat || "",
+          nomorTelepon: profileData.nomor_telepon || "",
+        };
+        setProfile(loadedProfile);
+        setEditProfile(loadedProfile);
+
+        // Fetch education history
+        const { data: eduData } = await supabase
+          .from('education_history')
+          .select('*')
+          .eq('profile_id', profileData.id)
+          .order('tahun_masuk', { ascending: true });
+
+        if (eduData) {
+          const loadedEducation = eduData.map(edu => ({
+            id: edu.id,
+            jenjang: edu.jenjang || "",
+            namaSekolah: edu.nama_sekolah || "",
+            tahunMasuk: edu.tahun_masuk || "",
+            tahunLulus: edu.tahun_lulus || ""
+          }));
+          setEducation(loadedEducation);
+          setEditEducation(loadedEducation);
+        }
+      } else {
+        // If no profile exists, create a dummy state for the user to fill
+        const initialProfile = {
+          id: "",
+          nama: "Admin",
+          nim: "123456789",
+          jurusan: "Teknik Informatika",
+          fakultas: "Ilmu Komputer",
+          angkatan: "2023",
+          alamat: "Jakarta",
+          nomorTelepon: "08123456789",
+        };
+        setProfile(initialProfile);
+        setEditProfile(initialProfile);
+      }
+    } catch (e) {
+      console.error("Gagal mengambil data profil:", e);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleSave = async () => {
     if (!editProfile.nama.trim() || !editProfile.nim.trim()) {
       alert("Nama dan NIM wajib diisi!");
       return;
     }
     
-    setProfile(editProfile);
-    setEducation(editEducation);
-    setIsEditing(false);
+    setIsSaving(true);
+    try {
+      let profileId = profile.id;
+      
+      const profilePayload = {
+        nama: editProfile.nama,
+        nim: editProfile.nim,
+        jurusan: editProfile.jurusan,
+        fakultas: editProfile.fakultas,
+        angkatan: editProfile.angkatan,
+        alamat: editProfile.alamat,
+        nomor_telepon: editProfile.nomorTelepon,
+      };
+
+      if (profileId) {
+        // Update existing
+        await supabase.from('profiles').update(profilePayload).eq('id', profileId);
+      } else {
+        // Insert new
+        const { data, error } = await supabase.from('profiles').insert([profilePayload]).select().single();
+        if (data) profileId = data.id;
+      }
+
+      // Handle Education History (Delete all and re-insert)
+      if (profileId) {
+        await supabase.from('education_history').delete().eq('profile_id', profileId);
+        
+        if (editEducation.length > 0) {
+          const eduPayload = editEducation.map(edu => ({
+            profile_id: profileId,
+            jenjang: edu.jenjang,
+            nama_sekolah: edu.namaSekolah,
+            tahun_masuk: edu.tahunMasuk,
+            tahun_lulus: edu.tahunLulus,
+          }));
+          await supabase.from('education_history').insert(eduPayload);
+        }
+      }
+      
+      await fetchProfileData();
+      setIsEditing(false);
+      alert("Profil berhasil disimpan!");
+    } catch (e: any) {
+      alert("Terjadi kesalahan saat menyimpan: " + e.message);
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const handleCancel = () => {
@@ -49,22 +161,30 @@ export default function ProfilePage() {
   const addEducation = () => {
     setEditEducation([
       ...editEducation,
-      { id: Date.now(), jenjang: "", namaSekolah: "", tahunMasuk: "", tahunLulus: "" }
+      { id: Date.now().toString(), jenjang: "", namaSekolah: "", tahunMasuk: "", tahunLulus: "" }
     ]);
   };
 
-  const removeEducation = (id: number) => {
+  const removeEducation = (id: string) => {
     setEditEducation(editEducation.filter(edu => edu.id !== id));
   };
 
-  const handleEducationChange = (id: number, field: string, value: string) => {
+  const handleEducationChange = (id: string, field: string, value: string) => {
     setEditEducation(editEducation.map(edu => 
       edu.id === id ? { ...edu, [field]: value } : edu
     ));
   };
 
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center min-h-[50vh]">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-4 border-primary"></div>
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen bg-bg py-12 px-4 sm:px-6 lg:px-8">
+    <div className="w-full">
       <div className="max-w-4xl mx-auto space-y-8">
         
         {/* Header */}
@@ -78,7 +198,7 @@ export default function ProfilePage() {
           </div>
           
           <div className="flex items-center gap-3">
-            <Link href="/" className="px-4 py-2 text-sm font-medium text-text-muted hover:bg-gray-100 rounded-xl transition-colors">
+            <Link href="/admin/dashboard" className="px-4 py-2 text-sm font-medium text-text-muted hover:bg-gray-100 rounded-xl transition-colors">
               Kembali
             </Link>
             {!isEditing ? (
@@ -100,10 +220,15 @@ export default function ProfilePage() {
                 </button>
                 <button 
                   onClick={handleSave}
-                  className="flex items-center gap-2 px-5 py-2.5 bg-accent-2 text-white text-sm font-medium rounded-xl hover:bg-emerald-500 transition-colors shadow-sm"
+                  disabled={isSaving}
+                  className="flex items-center gap-2 px-5 py-2.5 bg-accent-2 text-white text-sm font-medium rounded-xl hover:bg-emerald-500 transition-colors shadow-sm disabled:opacity-50"
                 >
-                  <Check className="w-4 h-4" />
-                  Simpan
+                  {isSaving ? (
+                     <div className="w-4 h-4 rounded-full border-2 border-white border-t-transparent animate-spin"></div>
+                  ) : (
+                    <Check className="w-4 h-4" />
+                  )}
+                  {isSaving ? 'Menyimpan...' : 'Simpan'}
                 </button>
               </div>
             )}
