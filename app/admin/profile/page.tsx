@@ -162,6 +162,7 @@ export default function ProfilePage() {
           angkatan: editProfile.angkatan,
           alamat: editProfile.alamat,
           nomor_telepon: editProfile.nomorTelepon,
+          foto_url: final_foto_url,
         }).eq('id', profileId);
         if (updateErr) throw new Error("Gagal update profil: " + updateErr.message);
       } else {
