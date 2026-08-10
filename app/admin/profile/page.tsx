@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import { User, Book, GraduationCap, MapPin, Phone, Building, Calendar, Edit2, Check, X, Plus, Trash2 } from 'lucide-react';
+import { User, Book, GraduationCap, MapPin, Phone, Building, Calendar, Edit2, Check, X, Plus, Trash2, Camera } from 'lucide-react';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
 import toast from 'react-hot-toast';
@@ -22,6 +22,7 @@ export default function ProfilePage() {
     angkatan: "",
     alamat: "",
     nomorTelepon: "",
+    fotoUrl: "",
   });
 
   const [education, setEducation] = useState<any[]>([]);
@@ -29,6 +30,7 @@ export default function ProfilePage() {
   // Form states for editing
   const [editProfile, setEditProfile] = useState(profile);
   const [editEducation, setEditEducation] = useState(education);
+  const [fotoFile, setFotoFile] = useState<File | null>(null);
 
   useEffect(() => {
     fetchProfileData();
@@ -54,6 +56,7 @@ export default function ProfilePage() {
           angkatan: profileData.angkatan || "",
           alamat: profileData.alamat || "",
           nomorTelepon: profileData.nomor_telepon || "",
+          fotoUrl: profileData.foto_url || "",
         };
         setProfile(loadedProfile);
         setEditProfile(loadedProfile);
@@ -87,6 +90,7 @@ export default function ProfilePage() {
           angkatan: "2023",
           alamat: "Jakarta",
           nomorTelepon: "08123456789",
+          fotoUrl: "",
         };
         setProfile(initialProfile);
         setEditProfile(initialProfile);
@@ -116,6 +120,26 @@ export default function ProfilePage() {
         throw new Error("Anda harus login terlebih dahulu");
       }
 
+      let final_foto_url = profile.fotoUrl;
+      if (fotoFile) {
+        const fileExt = fotoFile.name.split('.').pop();
+        const fileName = `${Math.random()}.${fileExt}`;
+        const filePath = `${fileName}`;
+        const { error: uploadError } = await supabase.storage.from('profiles').upload(filePath, fotoFile);
+        
+        if (uploadError) {
+          // Fallback to word-images bucket if profiles bucket doesn't exist
+          console.warn("Upload ke bucket 'profiles' gagal, mencoba 'word-images'", uploadError);
+          const { error: fallbackError } = await supabase.storage.from('word-images').upload(filePath, fotoFile);
+          if (fallbackError) throw new Error("Gagal upload foto: " + fallbackError.message);
+          const { data: { publicUrl } } = supabase.storage.from('word-images').getPublicUrl(filePath);
+          final_foto_url = publicUrl;
+        } else {
+          const { data: { publicUrl } } = supabase.storage.from('profiles').getPublicUrl(filePath);
+          final_foto_url = publicUrl;
+        }
+      }
+
       const profilePayload = {
         id: userId,
         nama: editProfile.nama,
@@ -125,6 +149,7 @@ export default function ProfilePage() {
         angkatan: editProfile.angkatan,
         alamat: editProfile.alamat,
         nomor_telepon: editProfile.nomorTelepon,
+        foto_url: final_foto_url,
       };
 
       if (profileId) {
@@ -177,6 +202,7 @@ export default function ProfilePage() {
   const handleCancel = () => {
     setEditProfile(profile);
     setEditEducation(education);
+    setFotoFile(null);
     setIsEditing(false);
   };
 
@@ -263,8 +289,29 @@ export default function ProfilePage() {
           <div className="lg:col-span-1 space-y-6">
             <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
               <div className="flex flex-col items-center pb-6 border-b border-gray-100">
-                <div className="w-32 h-32 bg-primary-light rounded-full flex items-center justify-center text-primary mb-4 border-4 border-white shadow-md">
-                  <User className="w-16 h-16" />
+                <div className="relative w-32 h-32 mb-4 group">
+                  <div className="w-full h-full bg-primary-light rounded-full flex items-center justify-center text-primary border-4 border-white shadow-md overflow-hidden">
+                    {(fotoFile || profile.fotoUrl) ? (
+                      <img 
+                        src={fotoFile ? URL.createObjectURL(fotoFile) : profile.fotoUrl} 
+                        alt="Profile" 
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <User className="w-16 h-16" />
+                    )}
+                  </div>
+                  {isEditing && (
+                    <label className="absolute bottom-0 right-0 p-2 bg-primary text-white rounded-full cursor-pointer shadow-md hover:bg-primary-dark transition-colors">
+                      <Camera className="w-5 h-5" />
+                      <input 
+                        type="file" 
+                        accept="image/*" 
+                        className="hidden" 
+                        onChange={(e) => setFotoFile(e.target.files?.[0] || null)}
+                      />
+                    </label>
+                  )}
                 </div>
                 {!isEditing ? (
                   <>
