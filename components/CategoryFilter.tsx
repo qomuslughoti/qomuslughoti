@@ -10,7 +10,7 @@ interface CategoryFilterProps {
 
 export default function CategoryFilter({ categories, selectedCategory, onSelect }: CategoryFilterProps) {
   return (
-    <div className="flex gap-3 justify-center mb-8 overflow-x-auto pb-4 pt-2 px-2 scrollbar-hide w-full max-w-full">
+    <div className="flex flex-wrap gap-2 md:gap-3 justify-center mb-8 w-full max-w-4xl mx-auto px-2">
       <FilterChip 
         label="Semua" 
         isActive={selectedCategory === null} 
