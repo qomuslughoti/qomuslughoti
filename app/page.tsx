@@ -115,13 +115,11 @@ export default function Home() {
         </div>
 
         {/* Category Filter */}
-        {categories.length > 0 && (
-          <CategoryFilter 
-            categories={categories}
-            selectedCategory={selectedCategory}
-            onSelect={setSelectedCategory}
-          />
-        )}
+        <CategoryFilter 
+          categories={categories}
+          selectedCategory={selectedCategory}
+          onSelect={setSelectedCategory}
+        />
 
         {/* Content Section */}
         <div className="w-full mt-4">
