@@ -1,10 +1,10 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Word } from '@/lib/types';
 import { createClient } from '@/lib/supabase/client';
 import { useRouter } from 'next/navigation';
-import { Loader2, Wand2, X } from 'lucide-react';
+import { Loader2, Wand2, X, Plus } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import AudioPlayer from '@/components/AudioPlayer';
 
@@ -38,6 +38,27 @@ export default function WordForm({ initialData, isEdit }: WordFormProps) {
   // States for previews of generated content
   const [generatedImageUrl, setGeneratedImageUrl] = useState<string | null>(null);
   const [generatedAudioUrl, setGeneratedAudioUrl] = useState<string | null>(null);
+
+  const [existingCategories, setExistingCategories] = useState<string[]>([]);
+  const [isAddingCategory, setIsAddingCategory] = useState(false);
+
+  useEffect(() => {
+    async function fetchCategories() {
+      const { data } = await supabase
+        .from('words')
+        .select('category')
+        .not('category', 'is', null);
+      if (data) {
+        const unique = Array.from(new Set(data.map(item => item.category))).filter(Boolean) as string[];
+        setExistingCategories(unique);
+        
+        if (!initialData?.category && unique.length > 0) {
+          setFormData(prev => ({ ...prev, category: unique[0] }));
+        }
+      }
+    }
+    fetchCategories();
+  }, [supabase, initialData]);
 
   const handleAutoGenerate = async () => {
     if (!formData.meaning_id) {
@@ -219,13 +240,59 @@ export default function WordForm({ initialData, isEdit }: WordFormProps) {
 
           <div>
             <label className="block text-sm font-bold text-text mb-2">Tema / Bab</label>
-            <input
-              type="text"
-              value={formData.category}
-              onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-              className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:border-primary focus:ring-1 focus:ring-primary"
-              placeholder="Bab 1, Teknik, dll"
-            />
+            
+            {isAddingCategory || existingCategories.length === 0 ? (
+              <div className="space-y-2">
+                <input
+                  type="text"
+                  value={formData.category}
+                  onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:border-primary focus:ring-1 focus:ring-primary"
+                  placeholder="Ketik tema baru..."
+                  autoFocus
+                />
+                {existingCategories.length > 0 && (
+                  <button 
+                    type="button" 
+                    onClick={() => {
+                      setIsAddingCategory(false);
+                      setFormData({ ...formData, category: existingCategories[0] });
+                    }}
+                    className="text-sm font-bold text-gray-500 hover:text-gray-700"
+                  >
+                    Batal Tambah
+                  </button>
+                )}
+              </div>
+            ) : (
+              <div className="space-y-3">
+                <div className="relative">
+                  <select
+                    value={formData.category}
+                    onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:border-primary focus:ring-1 focus:ring-primary appearance-none bg-white"
+                  >
+                    <option value="" disabled>-- Pilih Tema --</option>
+                    {existingCategories.map((cat) => (
+                      <option key={cat} value={cat}>{cat}</option>
+                    ))}
+                  </select>
+                  <div className="absolute inset-y-0 right-0 flex items-center px-4 pointer-events-none text-gray-500">
+                    <svg className="w-4 h-4 fill-current" viewBox="0 0 20 20"><path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"/></svg>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsAddingCategory(true);
+                    setFormData({ ...formData, category: '' });
+                  }}
+                  className="text-sm font-bold text-primary hover:text-primary-dark flex items-center gap-1"
+                >
+                  <Plus className="w-4 h-4" /> Tambah Tema Baru
+                </button>
+              </div>
+            )}
           </div>
 
         </div>

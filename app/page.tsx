@@ -14,10 +14,9 @@ export default function Home() {
   const supabase = createClient();
   
   const [words, setWords] = useState<Word[]>([]);
-  const DEFAULT_CATEGORIES = ["Bab 1", "Teknik"];
-  const [categories, setCategories] = useState<string[]>(DEFAULT_CATEGORIES);
+  const [categories, setCategories] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState<string | null>("Bab 1");
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   
   const [selectedWord, setSelectedWord] = useState<Word | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -33,8 +32,7 @@ export default function Home() {
         
       if (data) {
         const uniqueCategories = Array.from(new Set(data.map(item => item.category))).filter(Boolean) as string[];
-        const mergedCategories = Array.from(new Set([...DEFAULT_CATEGORIES, ...uniqueCategories]));
-        setCategories(mergedCategories);
+        setCategories(uniqueCategories);
       }
     }
     fetchCategories();
@@ -80,7 +78,7 @@ export default function Home() {
       {/* Top Right Navigation */}
       <div className="absolute top-4 right-4 sm:top-6 sm:right-6 flex items-center gap-3">
         <Link 
-          href="/admin/profile" 
+          href="/profile" 
           className="flex items-center gap-2 text-sm font-bold text-text-muted hover:text-primary bg-white px-4 py-2 rounded-full shadow-sm border border-gray-100 transition-colors"
         >
           <User className="w-4 h-4" />

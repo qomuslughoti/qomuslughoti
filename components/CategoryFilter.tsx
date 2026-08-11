@@ -11,6 +11,12 @@ interface CategoryFilterProps {
 export default function CategoryFilter({ categories, selectedCategory, onSelect }: CategoryFilterProps) {
   return (
     <div className="flex gap-3 justify-center mb-8 overflow-x-auto pb-4 pt-2 px-2 scrollbar-hide w-full max-w-full">
+      <FilterChip 
+        label="Semua" 
+        isActive={selectedCategory === null} 
+        onClick={() => onSelect(null)} 
+      />
+      
       {categories.map((category) => (
         <FilterChip 
           key={category}
