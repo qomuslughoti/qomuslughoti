@@ -41,6 +41,7 @@ export default function WordForm({ initialData, isEdit }: WordFormProps) {
 
   const [existingCategories, setExistingCategories] = useState<string[]>([]);
   const [isAddingCategory, setIsAddingCategory] = useState(false);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   useEffect(() => {
     async function fetchCategories() {
@@ -243,28 +244,57 @@ export default function WordForm({ initialData, isEdit }: WordFormProps) {
             
             {!isAddingCategory && existingCategories.length > 0 ? (
               <div className="relative">
-                <select
-                  value={existingCategories.includes(formData.category) ? formData.category : (formData.category === '' ? '' : '__ADD_NEW__')}
-                  onChange={(e) => {
-                    if (e.target.value === '__ADD_NEW__') {
-                      setIsAddingCategory(true);
-                      setFormData({ ...formData, category: '' });
-                    } else {
-                      setFormData({ ...formData, category: e.target.value });
-                    }
-                  }}
-                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:border-primary focus:ring-1 focus:ring-primary appearance-none bg-white font-medium"
+                <div 
+                  onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:border-primary focus:ring-1 focus:ring-primary bg-white cursor-pointer flex justify-between items-center transition-all hover:border-gray-300"
                 >
-                  <option value="" disabled>-- Pilih Tema --</option>
-                  {existingCategories.map((cat) => (
-                    <option key={cat} value={cat}>{cat}</option>
-                  ))}
-                  <option disabled>──────────</option>
-                  <option value="__ADD_NEW__" className="font-bold text-primary">+ Tambah Tema Baru</option>
-                </select>
-                <div className="absolute inset-y-0 right-0 flex items-center px-4 pointer-events-none text-gray-500">
-                  <svg className="w-4 h-4 fill-current" viewBox="0 0 20 20"><path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"/></svg>
+                  <span className={formData.category ? "text-text font-medium" : "text-gray-400"}>
+                    {formData.category || "-- Pilih Tema --"}
+                  </span>
+                  <svg className={`w-5 h-5 text-gray-400 transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`} viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+                  </svg>
                 </div>
+                
+                <AnimatePresence>
+                  {isDropdownOpen && (
+                    <>
+                      <div className="fixed inset-0 z-40" onClick={() => setIsDropdownOpen(false)}></div>
+                      <motion.div 
+                        initial={{ opacity: 0, y: -10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -10 }}
+                        transition={{ duration: 0.15 }}
+                        className="absolute z-50 w-full mt-2 bg-white border border-gray-100 rounded-xl shadow-xl overflow-hidden py-1"
+                      >
+                        <div className="max-h-60 overflow-y-auto custom-scrollbar">
+                          {existingCategories.map((cat) => (
+                            <div 
+                              key={cat} 
+                              onClick={() => {
+                                setFormData({ ...formData, category: cat });
+                                setIsDropdownOpen(false);
+                              }}
+                              className={`px-4 py-3 cursor-pointer hover:bg-primary-50 hover:text-primary transition-colors ${formData.category === cat ? 'bg-primary-50 text-primary font-bold' : 'text-text font-medium'}`}
+                            >
+                              {cat}
+                            </div>
+                          ))}
+                        </div>
+                        <div 
+                          onClick={() => {
+                            setIsAddingCategory(true);
+                            setFormData({ ...formData, category: '' });
+                            setIsDropdownOpen(false);
+                          }}
+                          className="px-4 py-3 cursor-pointer bg-gray-50 hover:bg-gray-100 transition-colors border-t border-gray-100 flex items-center gap-2 text-primary font-bold"
+                        >
+                          <Plus className="w-5 h-5" /> Tambah Tema Baru
+                        </div>
+                      </motion.div>
+                    </>
+                  )}
+                </AnimatePresence>
               </div>
             ) : (
               <div className="space-y-2">
