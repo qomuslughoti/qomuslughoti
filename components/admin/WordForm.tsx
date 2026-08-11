@@ -217,6 +217,17 @@ export default function WordForm({ initialData, isEdit }: WordFormProps) {
             />
           </div>
 
+          <div>
+            <label className="block text-sm font-bold text-text mb-2">Tema / Bab</label>
+            <input
+              type="text"
+              value={formData.category}
+              onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+              className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:border-primary focus:ring-1 focus:ring-primary"
+              placeholder="Bab 1, Teknik, dll"
+            />
+          </div>
+
         </div>
 
         <div className="space-y-6">

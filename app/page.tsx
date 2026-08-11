@@ -14,9 +14,10 @@ export default function Home() {
   const supabase = createClient();
   
   const [words, setWords] = useState<Word[]>([]);
-  const [categories, setCategories] = useState<string[]>([]);
+  const DEFAULT_CATEGORIES = ["Bab 1", "Teknik"];
+  const [categories, setCategories] = useState<string[]>(DEFAULT_CATEGORIES);
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState<string | null>("Bab 1");
   
   const [selectedWord, setSelectedWord] = useState<Word | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -32,7 +33,8 @@ export default function Home() {
         
       if (data) {
         const uniqueCategories = Array.from(new Set(data.map(item => item.category))).filter(Boolean) as string[];
-        setCategories(uniqueCategories);
+        const mergedCategories = Array.from(new Set([...DEFAULT_CATEGORIES, ...uniqueCategories]));
+        setCategories(mergedCategories);
       }
     }
     fetchCategories();
@@ -82,7 +84,7 @@ export default function Home() {
           className="flex items-center gap-2 text-sm font-bold text-text-muted hover:text-primary bg-white px-4 py-2 rounded-full shadow-sm border border-gray-100 transition-colors"
         >
           <User className="w-4 h-4" />
-          <span className="hidden sm:inline">Profil Klien</span>
+          <span className="hidden sm:inline">Profile</span>
         </Link>
         <Link 
           href="/admin/dashboard" 
@@ -100,7 +102,7 @@ export default function Home() {
           <div className="flex justify-center items-center gap-3 mb-4">
             <BookOpen className="w-10 h-10 text-primary" />
             <h1 className="text-5xl sm:text-6xl font-bold text-primary font-arabic" dir="rtl">
-              قاموس لغوي
+              قاموس لغتي
             </h1>
           </div>
           <h2 className="text-2xl sm:text-3xl font-bold text-text mb-2">

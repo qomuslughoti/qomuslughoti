@@ -64,7 +64,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             }`}
           >
             <User className="w-5 h-5" />
-            Profil Klien
+            Profile
           </Link>
         </nav>
 
