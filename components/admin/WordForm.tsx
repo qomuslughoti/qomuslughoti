@@ -268,14 +268,31 @@ export default function WordForm({ initialData, isEdit }: WordFormProps) {
               </div>
             ) : (
               <div className="space-y-2">
-                <input
-                  type="text"
-                  value={formData.category}
-                  onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:border-primary focus:ring-1 focus:ring-primary"
-                  placeholder="Ketik tema baru..."
-                  autoFocus
-                />
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={formData.category}
+                    onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:border-primary focus:ring-1 focus:ring-primary"
+                    placeholder="Ketik tema baru..."
+                    autoFocus
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (formData.category.trim()) {
+                        const newCat = formData.category.trim();
+                        if (!existingCategories.includes(newCat)) {
+                          setExistingCategories([...existingCategories, newCat]);
+                        }
+                        setIsAddingCategory(false);
+                      }
+                    }}
+                    className="px-5 bg-primary text-white font-bold rounded-xl hover:bg-primary-dark transition-colors whitespace-nowrap shadow-sm"
+                  >
+                    ACC
+                  </button>
+                </div>
                 {existingCategories.length > 0 && (
                   <button 
                     type="button" 
