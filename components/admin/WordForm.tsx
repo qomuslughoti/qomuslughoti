@@ -241,58 +241,20 @@ export default function WordForm({ initialData, isEdit }: WordFormProps) {
           <div>
             <label className="block text-sm font-bold text-text mb-2">Tema / Bab</label>
             
-            {isAddingCategory || existingCategories.length === 0 ? (
-              <div className="space-y-2">
-                <input
-                  type="text"
-                  value={formData.category}
-                  onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:border-primary focus:ring-1 focus:ring-primary"
-                  placeholder="Ketik tema baru..."
-                  autoFocus
-                />
-                {existingCategories.length > 0 && (
-                  <button 
-                    type="button" 
-                    onClick={() => {
-                      setIsAddingCategory(false);
-                      setFormData({ ...formData, category: existingCategories[0] });
-                    }}
-                    className="text-sm font-bold text-gray-500 hover:text-gray-700"
-                  >
-                    Batal Tambah
-                  </button>
-                )}
-              </div>
-            ) : (
-              <div className="space-y-3">
-                <div className="relative">
-                  <select
-                    value={formData.category}
-                    onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:border-primary focus:ring-1 focus:ring-primary appearance-none bg-white"
-                  >
-                    <option value="" disabled>-- Pilih Tema --</option>
-                    {existingCategories.map((cat) => (
-                      <option key={cat} value={cat}>{cat}</option>
-                    ))}
-                  </select>
-                  <div className="absolute inset-y-0 right-0 flex items-center px-4 pointer-events-none text-gray-500">
-                    <svg className="w-4 h-4 fill-current" viewBox="0 0 20 20"><path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"/></svg>
-                  </div>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setIsAddingCategory(true);
-                    setFormData({ ...formData, category: '' });
-                  }}
-                  className="text-sm font-bold text-primary hover:text-primary-dark flex items-center gap-1"
-                >
-                  <Plus className="w-4 h-4" /> Tambah Tema Baru
-                </button>
-              </div>
-            )}
+            <input
+              type="text"
+              list="category-options"
+              value={formData.category}
+              onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+              className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:border-primary focus:ring-1 focus:ring-primary bg-white"
+              placeholder="Pilih atau ketik tema baru..."
+            />
+            <datalist id="category-options">
+              {existingCategories.map((cat) => (
+                <option key={cat} value={cat} />
+              ))}
+            </datalist>
+            <p className="text-xs text-gray-400 mt-1">Ketik untuk mencari tema, atau ketik tema baru jika belum ada.</p>
           </div>
 
         </div>
