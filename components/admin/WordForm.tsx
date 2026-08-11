@@ -320,7 +320,7 @@ export default function WordForm({ initialData, isEdit }: WordFormProps) {
                     }}
                     className="px-5 bg-primary text-white font-bold rounded-xl hover:bg-primary-dark transition-colors whitespace-nowrap shadow-sm"
                   >
-                    ACC
+                    Tambah
                   </button>
                 </div>
                 {existingCategories.length > 0 && (
