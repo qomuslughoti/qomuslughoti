@@ -164,12 +164,26 @@ export default function WordForm({ initialData, isEdit }: WordFormProps) {
          }
       }
 
+      // Auto-translate example sentence to Indonesian in the background
+      let final_example_translation = null;
+      if (formData.example_sentence?.trim()) {
+        try {
+          const transRes = await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=ar&tl=id&dt=t&q=${encodeURIComponent(formData.example_sentence.trim())}`);
+          if (transRes.ok) {
+            const transData = await transRes.json();
+            final_example_translation = transData[0][0][0];
+          }
+        } catch (e) {
+          console.error("Auto translation of example sentence failed:", e);
+        }
+      }
+
       const wordPayload = {
         arabic_text: formData.arabic_text,
         meaning_id: formData.meaning_id,
         category: formData.category || null,
         example_sentence: formData.example_sentence || null,
-        example_translation: formData.example_translation || null,
+        example_translation: final_example_translation,
         audio_url: final_audio_url,
         image_url: final_image_url,
       };

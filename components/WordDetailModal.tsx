@@ -66,20 +66,22 @@ export default function WordDetailModal({ word, isOpen, onClose }: WordDetailMod
               </div>
 
               {/* Details */}
-              <div className="bg-gray-50 rounded-3xl p-6 border border-gray-100">
-                <div className="mb-6 text-center">
-                  <h3 className="text-sm font-bold text-text-muted uppercase tracking-wider mb-2">Arti</h3>
-                  <p className="text-2xl font-bold text-text">{word.meaning_id}</p>
+              <div className="space-y-4">
+                {/* Arti Card */}
+                <div className="bg-gray-50 rounded-3xl p-6 border border-gray-100 text-center">
+                  <h3 className="text-xs font-bold text-text-muted uppercase tracking-wider mb-2">Arti</h3>
+                  <p className="text-3xl font-bold text-text">{word.meaning_id}</p>
                 </div>
 
+                {/* Contoh Kalimat Card */}
                 {word.example_sentence && (
-                  <div className="text-center pt-6 border-t border-gray-200">
-                    <h3 className="text-sm font-bold text-text-muted uppercase tracking-wider mb-4">Contoh Kalimat</h3>
-                    <p className="text-2xl font-arabic text-text mb-3" dir="rtl">
+                  <div className="bg-primary/5 rounded-3xl p-6 border border-primary-light/50 text-center">
+                    <h3 className="text-xs font-bold text-primary uppercase tracking-wider mb-3">Contoh Kalimat</h3>
+                    <p className="text-2xl sm:text-3xl font-arabic text-text leading-relaxed mb-3" dir="rtl">
                       {word.example_sentence}
                     </p>
                     {word.example_translation && (
-                      <p className="text-base text-text-muted italic">
+                      <p className="text-sm sm:text-base text-text-muted italic border-t border-primary-light/35 pt-3 mt-3">
                         "{word.example_translation}"
                       </p>
                     )}
