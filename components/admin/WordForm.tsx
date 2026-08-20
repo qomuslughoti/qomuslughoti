@@ -164,14 +164,16 @@ export default function WordForm({ initialData, isEdit }: WordFormProps) {
          }
       }
 
-      // Auto-translate example sentence to Indonesian in the background
+      // Auto-translate example sentence to Indonesian in the background (routed via local API to avoid browser CORS)
       let final_example_translation = null;
       if (formData.example_sentence?.trim()) {
         try {
-          const transRes = await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=ar&tl=id&dt=t&q=${encodeURIComponent(formData.example_sentence.trim())}`);
+          const transRes = await fetch(`/api/translate?text=${encodeURIComponent(formData.example_sentence.trim())}&sl=ar&tl=id`);
           if (transRes.ok) {
             const transData = await transRes.json();
-            final_example_translation = transData[0][0][0];
+            if (transData.success) {
+              final_example_translation = transData.translation;
+            }
           }
         } catch (e) {
           console.error("Auto translation of example sentence failed:", e);
