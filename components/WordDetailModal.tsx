@@ -58,7 +58,7 @@ export default function WordDetailModal({ word, isOpen, onClose }: WordDetailMod
                     <img src={word.image_url} alt={word.meaning_id} className="w-full h-full object-cover" />
                   </div>
                 )}
-                <h2 className="text-6xl sm:text-7xl font-arabic text-primary text-center leading-tight tracking-normal" dir="rtl">
+                <h2 className="text-4xl sm:text-5xl font-arabic text-primary text-center leading-tight tracking-normal" dir="rtl">
                   {word.arabic_text}
                 </h2>
                 
@@ -77,7 +77,7 @@ export default function WordDetailModal({ word, isOpen, onClose }: WordDetailMod
                 {word.example_sentence && (
                   <div className="bg-primary/5 rounded-3xl p-6 border border-primary-light/50 text-center">
                     <h3 className="text-xs font-bold text-primary uppercase tracking-wider mb-3">Contoh Kalimat</h3>
-                    <p className="text-2xl sm:text-3xl font-arabic text-text leading-relaxed mb-3" dir="rtl">
+                    <p className="text-xl sm:text-2xl font-arabic text-text leading-relaxed mb-3" dir="rtl">
                       {word.example_sentence}
                     </p>
                     {word.example_translation && (
