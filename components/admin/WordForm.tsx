@@ -78,8 +78,7 @@ export default function WordForm({ initialData, isEdit }: WordFormProps) {
         setFormData(prev => ({
           ...prev,
           arabic_text: data.data.arabic_text,
-          ...(data.data.example_sentence ? { example_sentence: data.data.example_sentence } : {}),
-          ...(data.data.example_translation ? { example_translation: data.data.example_translation } : {})
+          // Contoh kalimat TIDAK di-overwrite oleh AI, diisi manual oleh user
         }));
         
         // Simpan URL preview
@@ -339,6 +338,25 @@ export default function WordForm({ initialData, isEdit }: WordFormProps) {
             )}
           </div>
 
+        </div>
+
+        {/* Contoh Kalimat - Full Width Section */}
+        <div className="md:col-span-2 space-y-6 border-t border-gray-100 pt-6 mt-2">
+          <h3 className="text-sm font-bold text-text uppercase tracking-wider flex items-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 6.1H3"/><path d="M21 12.1H3"/><path d="M15.1 18H3"/></svg>
+            Contoh Kalimat (Bahasa Arab)
+          </h3>
+          <div>
+            <textarea
+              value={formData.example_sentence}
+              onChange={(e) => setFormData({ ...formData, example_sentence: e.target.value })}
+              className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:border-primary focus:ring-1 focus:ring-primary font-arabic text-xl resize-none text-right"
+              dir="rtl"
+              rows={3}
+              placeholder="أَنَا أَقْرَأُ الْكِتَابَ"
+            />
+            <p className="text-xs text-gray-400 mt-1">Masukkan contoh penggunaan kata ini dalam kalimat bahasa Arab (kanan-ke-kiri).</p>
+          </div>
         </div>
 
         <div className="space-y-6">
